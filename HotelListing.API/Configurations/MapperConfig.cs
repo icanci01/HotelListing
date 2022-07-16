@@ -18,7 +18,6 @@ public class MapperConfig : Profile
         // Hotel
         CreateMap<Hotel, CreateHotelDto>().ReverseMap();
         CreateMap<Hotel, GetHotelDto>().ReverseMap();
-        CreateMap<Hotel, UpdateHotelDto>().ReverseMap();
         CreateMap<Hotel, HotelDto>().ReverseMap();
     }
 }

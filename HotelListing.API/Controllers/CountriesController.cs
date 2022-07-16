@@ -11,9 +11,8 @@ namespace HotelListing.API.Controllers;
 [ApiController]
 public class CountriesController : ControllerBase
 {
-
-    private readonly IMapper _mapper;
     private readonly ICountriesRepository _countriesRepository;
+    private readonly IMapper _mapper;
 
     public CountriesController(IMapper mapper, ICountriesRepository countriesRepository)
     {
@@ -85,6 +84,7 @@ public class CountriesController : ControllerBase
     public async Task<IActionResult> DeleteCountry(int id)
     {
         var country = await _countriesRepository.GetAsync(id);
+
         if (country == null) return NotFound();
 
         await _countriesRepository.DeleteAsync(id);

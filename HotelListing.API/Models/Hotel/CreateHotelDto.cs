@@ -1,6 +1,5 @@
 ﻿namespace HotelListing.API.Models.Hotel;
 
-public class UpdateHotelDto
+public class CreateHotelDto : BaseHotelDto
 {
-    public int Id;
 }
