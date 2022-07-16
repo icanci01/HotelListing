@@ -1,9 +1,9 @@
 ﻿using AutoMapper;
-using HotelListingAPI.Data;
-using HotelListingAPI.Models.Country;
-using HotelListingAPI.Models.Hotel;
+using HotelListing.API.Data;
+using HotelListing.API.Models.Country;
+using HotelListing.API.Models.Hotel;
 
-namespace HotelListingAPI.Configurations;
+namespace HotelListing.API.Configurations;
 
 public class MapperConfig : Profile
 {

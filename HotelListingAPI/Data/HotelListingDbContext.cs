@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 
-namespace HotelListingAPI.Data;
+namespace HotelListing.API.Data;
 
 public class HotelListingDbContext : DbContext
 {
@@ -9,7 +9,7 @@ public class HotelListingDbContext : DbContext
     }
 
     public DbSet<Hotel> Hotels { get; set; }
-    public DbSet<Country> Countries { get; set; }
+    public DbSet<Country?> Countries { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
