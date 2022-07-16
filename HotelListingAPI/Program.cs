@@ -1,3 +1,4 @@
+using HotelListingAPI.Configurations;
 using HotelListingAPI.Data;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
@@ -7,10 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 
 var connectionString = builder.Configuration.GetConnectionString("HotelListingDbConnectionString");
-builder.Services.AddDbContext<HotelListingDbContext>(options =>
-{
-    options.UseSqlServer(connectionString);
-});
+builder.Services.AddDbContext<HotelListingDbContext>(options => { options.UseSqlServer(connectionString); });
 
 builder.Services.AddControllers();
 
@@ -30,6 +28,8 @@ builder.Host.UseSerilog((context, loggerConfig) =>
 {
     loggerConfig.WriteTo.Console().ReadFrom.Configuration(context.Configuration);
 });
+
+builder.Services.AddAutoMapper(typeof(MapperConfig));
 
 var app = builder.Build();
 
