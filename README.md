@@ -1,4 +1,4 @@
-# HotelListingAPI
+# HotelListing
 
 ## SQL Server Migrations
 
