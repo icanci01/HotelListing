@@ -15,16 +15,18 @@ public class AuthManager : IAuthManager
     private readonly IMapper _mapper;
     private readonly UserManager<ApiUser> _userManager;
     private readonly IConfiguration _configuration;
+    private readonly ILogger<AuthManager> _logger;
     private ApiUser _user;
 
-    private const string _loginProvider = "HotelListingApi";
+    private const string _loginProvider = "HotelListingAPI";
     private const string _refreshToken = "RefreshToken";
 
-    public AuthManager(IMapper mapper, UserManager<ApiUser> userManager, IConfiguration configuration)
+    public AuthManager(IMapper mapper, UserManager<ApiUser> userManager, IConfiguration configuration, ILogger<AuthManager> logger)
     {
         _mapper = mapper;
         _userManager = userManager;
         _configuration = configuration;
+        _logger = logger;
     }
 
     public async Task<string> CreateRefreshToken()
@@ -32,23 +34,41 @@ public class AuthManager : IAuthManager
         await _userManager.RemoveAuthenticationTokenAsync(_user, _loginProvider, _refreshToken);
         var newRefreshToken = await _userManager.GenerateUserTokenAsync(_user, _loginProvider, _refreshToken);
         var result = await _userManager.SetAuthenticationTokenAsync(_user, _loginProvider, _refreshToken, newRefreshToken);
+
         return newRefreshToken;
+
     }
 
     public async Task<AuthResponseDto> Login(LoginDto loginDto)
     {
+        _logger.LogInformation($"Looking for user with email {loginDto.Email}");
+
         _user = await _userManager.FindByEmailAsync(loginDto.Email);
+
+        if (_user == null)
+        {
+            _logger.LogWarning($"User with email {loginDto.Email} was not found");
+            return null;
+        }
+
         bool isValidUser = await _userManager.CheckPasswordAsync(_user, loginDto.Password);
 
-        if (_user == null || isValidUser == false) return null;
+        if (isValidUser == false)
+        {
+            _logger.LogWarning($"Wrong Password for user with email {loginDto.Email}");
+            return null;
+        }
 
         var token = await GenerateToken();
-        
+        var refreshToken = await CreateRefreshToken();
+
+        _logger.LogInformation($"Token and RefreshToken generated for user {loginDto.Email} | Token: {token} | RefreshToken: {refreshToken}");
+
         return new AuthResponseDto
         {
-            Token = token,
             UserId = _user.Id,
-            RefreshToken = await CreateRefreshToken()
+            Token = token,
+            RefreshToken = refreshToken
         };
     }
 

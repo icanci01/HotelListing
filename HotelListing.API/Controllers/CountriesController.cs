@@ -13,16 +13,19 @@ namespace HotelListing.API.Controllers;
 public class CountriesController : ControllerBase
 {
     private readonly ICountriesRepository _countriesRepository;
+    private readonly ILogger<CountriesController> _logger;
     private readonly IMapper _mapper;
 
-    public CountriesController(IMapper mapper, ICountriesRepository countriesRepository)
+    public CountriesController(IMapper mapper, ICountriesRepository countriesRepository, ILogger<CountriesController> logger)
     {
         _mapper = mapper;
         _countriesRepository = countriesRepository;
+        _logger = logger;
     }
 
     // GET: api/Countries
     [HttpGet]
+    [Authorize]
     public async Task<ActionResult<IEnumerable<GetCountryDto>>> GetCountries()
     {
         var countries = await _countriesRepository.GetAllAsync();
@@ -36,7 +39,11 @@ public class CountriesController : ControllerBase
     {
         var country = await _countriesRepository.GetDetails(id);
 
-        if (country == null) return NotFound();
+        if (country == null)
+        {
+            _logger.LogWarning($"No record found in {nameof(CountryDto)} with Id: {id}");
+            return NotFound();
+        }
 
         var record = _mapper.Map<CountryDto>(country);
 
