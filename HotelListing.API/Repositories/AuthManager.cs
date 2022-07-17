@@ -26,26 +26,24 @@ public class AuthManager : IAuthManager
         _userManager = userManager;
         _configuration = configuration;
     }
+
     public async Task<string> CreateRefreshToken()
     {
         await _userManager.RemoveAuthenticationTokenAsync(_user, _loginProvider, _refreshToken);
-
         var newRefreshToken = await _userManager.GenerateUserTokenAsync(_user, _loginProvider, _refreshToken);
-
         var result = await _userManager.SetAuthenticationTokenAsync(_user, _loginProvider, _refreshToken, newRefreshToken);
-
         return newRefreshToken;
     }
 
     public async Task<AuthResponseDto> Login(LoginDto loginDto)
     {
         _user = await _userManager.FindByEmailAsync(loginDto.Email);
-        var isValidUser = await _userManager.CheckPasswordAsync(_user, loginDto.Password);
+        bool isValidUser = await _userManager.CheckPasswordAsync(_user, loginDto.Password);
 
         if (_user == null || isValidUser == false) return null;
 
         var token = await GenerateToken();
-
+        
         return new AuthResponseDto
         {
             Token = token,
@@ -53,6 +51,7 @@ public class AuthManager : IAuthManager
             RefreshToken = await CreateRefreshToken()
         };
     }
+
     public async Task<IEnumerable<IdentityError>> Register(ApiUserDto userDto)
     {
         _user = _mapper.Map<ApiUser>(userDto);
@@ -61,7 +60,9 @@ public class AuthManager : IAuthManager
         var result = await _userManager.CreateAsync(_user, userDto.Password);
 
         if (result.Succeeded)
+        {
             await _userManager.AddToRoleAsync(_user, "User");
+        }
 
         return result.Errors;
     }
@@ -69,13 +70,11 @@ public class AuthManager : IAuthManager
     public async Task<AuthResponseDto> VerifyRefreshToken(AuthResponseDto request)
     {
         var jwtSecurityTokenHandler = new JwtSecurityTokenHandler();
-        var tokenContent = jwtSecurityTokenHandler.ReadToken(request.Token) as JwtSecurityToken;
-        var username = tokenContent?.Claims.ToList().FirstOrDefault(q => q.Type == JwtRegisteredClaimNames.Email)?.Value;
-
+        var tokenContent = jwtSecurityTokenHandler.ReadJwtToken(request.Token);
+        var username = tokenContent.Claims.ToList().FirstOrDefault(q => q.Type == JwtRegisteredClaimNames.Email)?.Value;
         _user = await _userManager.FindByNameAsync(username);
 
-        if (_user == null || _user.Id != request.UserId)
-            return null;
+        if (_user == null || _user.Id != request.UserId) return null;
 
         var isValidRefreshToken = await _userManager.VerifyUserTokenAsync(_user, _loginProvider, _refreshToken, request.RefreshToken);
 
@@ -105,12 +104,13 @@ public class AuthManager : IAuthManager
         var userClaims = await _userManager.GetClaimsAsync(_user);
 
         var claims = new List<Claim>
-        {
-            new(JwtRegisteredClaimNames.Sub, _user.Email),
-            new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-            new(JwtRegisteredClaimNames.Email, _user.Email),
-            new("uid", _user.Id)
-        }.Union(userClaims).Union(roleClaims);
+            {
+                new Claim(JwtRegisteredClaimNames.Sub, _user.Email),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                new Claim(JwtRegisteredClaimNames.Email, _user.Email),
+                new Claim("uid", _user.Id),
+            }
+        .Union(userClaims).Union(roleClaims);
 
         var token = new JwtSecurityToken(
             issuer: _configuration["JwtSettings:Issuer"],
