@@ -15,6 +15,23 @@ public class AccountController : ControllerBase
         _authManager = authManager;
     }
 
+    // POST: api/Account/Login
+    [HttpPost]
+    [Route("login")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult> Login([FromBody] LoginDto loginDto)
+    {
+        var isValidUser = await _authManager.Login(loginDto);
+        if (!isValidUser)
+        {
+            return Unauthorized();
+        }
+
+        return Ok();
+    }
+
     // POST: api/Account/Register
     [HttpPost]
     [Route("register")]
@@ -25,9 +42,12 @@ public class AccountController : ControllerBase
     {
         var errors = await _authManager.Register(apiUserDto);
 
-        if (errors.Any())
+        var identityErrors = errors.ToList();
+
+        if (identityErrors.Any())
         {
-            foreach (var error in errors) ModelState.AddModelError(error.Code, error.Description);
+            foreach (var error in identityErrors) 
+                ModelState.AddModelError(error.Code, error.Description);
 
             return BadRequest(ModelState);
         }
