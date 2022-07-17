@@ -71,9 +71,9 @@ public class AuthManager : IAuthManager
         }.Union(userClaims).Union(roleClaims);
 
         var token = new JwtSecurityToken(
-            _configuration["JwtSettings:Issuer"],
-            _configuration["JwtSettings:Audience"],
-            claims,
+            issuer: _configuration["JwtSettings:Issuer"],
+            audience: _configuration["JwtSettings:Audience"],
+            claims: claims,
             expires: DateTime.Now.AddMinutes(Convert.ToInt32(_configuration["JwtSettings:DurationInMinutes"])),
             signingCredentials: credentials
         );
