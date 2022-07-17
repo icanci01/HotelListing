@@ -33,6 +33,24 @@ public class AccountController : ControllerBase
         return Ok(authResponse);
     }
 
+    // POST: api/Account/RefershToken
+    [HttpPost]
+    [Route("refreshToken")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult> RefreshToken([FromBody] AuthResponseDto request)
+    {
+        var authResponse = await _authManager.VerifyRefreshToken(request);
+
+        if (authResponse == null)
+        {
+            return Unauthorized();
+        }
+
+        return Ok(authResponse);
+    }
+
     // POST: api/Account/Register
     [HttpPost]
     [Route("register")]
