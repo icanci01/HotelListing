@@ -40,7 +40,8 @@ public class AuthManager : IAuthManager
         return new AuthResponseDto
         {
             Token = token,
-            UserId = _user.Id
+            UserId = _user.Id,
+            RefreshToken = await CreateRefreshToken()
         };
     }
     public async Task<IEnumerable<IdentityError>> Register(ApiUserDto userDto)
