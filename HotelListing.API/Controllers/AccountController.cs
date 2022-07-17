@@ -23,13 +23,14 @@ public class AccountController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult> Login([FromBody] LoginDto loginDto)
     {
-        var isValidUser = await _authManager.Login(loginDto);
-        if (!isValidUser)
+        var authResponse = await _authManager.Login(loginDto);
+        
+        if (authResponse == null)
         {
             return Unauthorized();
         }
 
-        return Ok();
+        return Ok(authResponse);
     }
 
     // POST: api/Account/Register
