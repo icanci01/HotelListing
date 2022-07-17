@@ -12,20 +12,29 @@ namespace HotelListing.API.Repositories;
 
 public class AuthManager : IAuthManager
 {
-    private readonly IConfiguration _configuration;
     private readonly IMapper _mapper;
     private readonly UserManager<ApiUser> _userManager;
+    private readonly IConfiguration _configuration;
     private ApiUser _user;
 
     private const string _loginProvider = "HotelListingApi";
     private const string _refreshToken = "RefreshToken";
-
 
     public AuthManager(IMapper mapper, UserManager<ApiUser> userManager, IConfiguration configuration)
     {
         _mapper = mapper;
         _userManager = userManager;
         _configuration = configuration;
+    }
+    public async Task<string> CreateRefreshToken()
+    {
+        await _userManager.RemoveAuthenticationTokenAsync(_user, _loginProvider, _refreshToken);
+
+        var newRefreshToken = await _userManager.GenerateUserTokenAsync(_user, _loginProvider, _refreshToken);
+
+        var result = await _userManager.SetAuthenticationTokenAsync(_user, _loginProvider, _refreshToken, newRefreshToken);
+
+        return newRefreshToken;
     }
 
     public async Task<AuthResponseDto> Login(LoginDto loginDto)
@@ -55,17 +64,6 @@ public class AuthManager : IAuthManager
             await _userManager.AddToRoleAsync(_user, "User");
 
         return result.Errors;
-    }
-
-    public async Task<string> CreateRefreshToken()
-    {
-        await _userManager.RemoveAuthenticationTokenAsync(_user, _loginProvider, _refreshToken);
-
-        var newRefreshToken = await _userManager.GenerateUserTokenAsync(_user, _loginProvider, _refreshToken);
-
-        var result = await _userManager.SetAuthenticationTokenAsync(_user, _loginProvider, _refreshToken, newRefreshToken);
-
-        return newRefreshToken;
     }
 
     public async Task<AuthResponseDto> VerifyRefreshToken(AuthResponseDto request)
