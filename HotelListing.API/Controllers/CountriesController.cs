@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using HotelListing.API.Contracts;
 using HotelListing.API.Data;
+using HotelListing.API.Exceptions;
 using HotelListing.API.Models.Country;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -40,10 +41,7 @@ public class CountriesController : ControllerBase
         var country = await _countriesRepository.GetDetails(id);
 
         if (country == null)
-        {
-            _logger.LogWarning($"No record found in {nameof(CountryDto)} with Id: {id}");
-            return NotFound();
-        }
+            throw new NotFoundException(nameof(GetCountry), id);
 
         var record = _mapper.Map<CountryDto>(country);
 
@@ -59,7 +57,8 @@ public class CountriesController : ControllerBase
 
         var country = await _countriesRepository.GetAsync(id);
 
-        if (country == null) return NotFound();
+        if (country == null)
+            throw new NotFoundException(nameof(PutCountry), id);
 
         _mapper.Map(updateCountry, country);
 
@@ -96,7 +95,8 @@ public class CountriesController : ControllerBase
     {
         var country = await _countriesRepository.GetAsync(id);
 
-        if (country == null) return NotFound();
+        if (country == null)
+            throw new NotFoundException(nameof(DeleteCountry), id);
 
         await _countriesRepository.DeleteAsync(id);
 
